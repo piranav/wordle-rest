@@ -61,6 +61,7 @@ def lambda_handler(event, context):
             if 'Item' in response:
                 game_data = response['Item']['game_data']
                 print(game_data)
+                #Checking if it satisfies base conditions 
                 if not guessed_word.isalpha() or len(guessed_word) != len(game_data['word']):
                     return {'statusCode': 400, 'body': 'Invalid guessed word'}
                 elif game_data['remaining_turns'] == 0:
@@ -74,6 +75,7 @@ def lambda_handler(event, context):
 
         # Return a 404 error for any other request
         return {'statusCode': 404, 'body': {'message': 'Resource not found'}}
+    
     except Exception as e:
         # Log the error message
         print(f'Error: {str(e)}')
@@ -81,6 +83,7 @@ def lambda_handler(event, context):
         return {'statusCode': 500, 'body': {'message': 'Internal server error'}}
 
 
+#Function used to start a new gaem
 def startGame(num_letters, user_id):
     # Generate a random target word of the specified length
     wordlist = ['apple', 'banana', 'cherry', 'date', 'elder', 'fig', 'grape', 'hazel', 'indigo', 'juniper', 'kiwi', 'lemon', 'mango',
@@ -107,7 +110,7 @@ def startGame(num_letters, user_id):
     # Return the game ID
     return {'game_id': temp_id}
 
-
+#Function used to get the game data from the game_id
 def getGame(response):
     game_data = response['Item']['game_data']
     # Return the game status
@@ -118,7 +121,7 @@ def getGame(response):
     }
     return {'game_data': response_body}
 
-
+#Function used to check the guessed word and returns the feedback
 def saveGuess(game_data, guessed_word, game_id):
     # Check if the guessed word is the same as the target word
     target_word = game_data['word']
