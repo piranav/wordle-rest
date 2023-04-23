@@ -22,26 +22,37 @@ The API Gateway endpoint is printed to the console after the stack is deployed. 
 
 ### Create a Game
 
-To create a new game, send a POST request to the `/games` endpoint with a JSON body that includes the `game_id`:
+To create a new game, send a POST request to the `/games` endpoint with a JSON body that includes the unique user_id `user_id` and `num_letters` which denotes the number of letters you want your game word to have. :
 
 ```
 POST /games
-
+```
+```
 {
-  "game_id": "abcd1234"
+  "user_id": "1234",
+  "num_letters:"5"
+}
+```
+This will return a unique game_id which can be used to guess and track the status of the game.
+
+```
+{
+"game_id":"1002"
 }
 ```
 
 ### Guess a Word
 
-To guess a word in a game, send a POST request to the `/games/{game_id}/guesses` endpoint with a JSON body that includes the `guess`:
+To guess a word in a game, send a POST request to the `/games/{game_id}/guess` endpoint with a JSON body that includes the `guess`:
 
 ```
-POST /games/abcd1234/guesses
-
+POST /games/1002/guess
+```
+```
 {
   "guess": "apple"
 }
+
 ```
 
 ### Get Game Status
@@ -49,8 +60,9 @@ POST /games/abcd1234/guesses
 To get the status of a game, send a GET request to the `/games/{game_id}` endpoint:
 
 ```
-GET /games/abcd1234
+GET /games/1002
 ```
+this would return the user_id , number of turns left and your past guesses.
 
 ## Cleanup
 
