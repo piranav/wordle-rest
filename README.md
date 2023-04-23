@@ -26,7 +26,8 @@ To create a new game, send a POST request to the `/games` endpoint with a JSON b
 
 ```
 POST /games
-
+```
+```
 {
   "user_id": "1234",
   "num_letters:"5"
