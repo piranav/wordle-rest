@@ -13,17 +13,15 @@ table = dynamodb.Table(dynamodbTableName)
 
 #HTTP REQUESTS
 
-# Extracting the http method
-httpMethod = event['httpMethod']
-path = event['path']
-getMethod = 'GET'
-postMethod = 'POST'
-
 
 def lambda_handler(event, context):
     try:
+        # Extracting the http method
+        httpMethod = event['httpMethod']
+        getMethod = 'GET'
+        postMethod = 'POST'
         # Takes the number of letters and creates a new game, returns the game id
-        if httpMethod == postMethod and event['resource'] == '/games':
+        if httpMethod == postMethod and event['resource'] == '/games:
             num_letters = int(json.loads(event['body'])['num_letters'])
             user_id = json.loads(event['body'])['user_id']
             print(user_id, num_letters)
@@ -38,7 +36,6 @@ def lambda_handler(event, context):
         # Takes the game_id and returns the status of the game
         if httpMethod == getMethod and event['resource'] == '/games/{game_id}' and 'game_id' in event['pathParameters']:
             game_id = event['pathParameters']['game_id']
-            print(game_id)
             response = table.get_item(Key={'game_id': game_id})
             if 'Item' in response:
                 response_body = getGame(response)
@@ -49,10 +46,10 @@ def lambda_handler(event, context):
             return {'statusCode': 404, 'body': 'Game not found'}
 
         # Takes the game_id, guessed_word and returns the result based on the guessed_word
-        if  httpMethod == postMethod and event['resource'] == '/games/{game_id}/guess' and 'game_id' in event['pathParameters'] :
+        if event['resource'] == '/games/{game_id}/guess' and 'game_id' in event['pathParameters'] :
             game_id = event['pathParameters']['game_id']
             print(game_id)
-            guessed_word = (json.loads(event['body'])['guessed_word']).lower()
+            guessed_word = (json.loads(event['body'])['guess']).lower()
             response = table.get_item(Key={'game_id': game_id})
 
             if 'Item' in response:
@@ -80,7 +77,7 @@ def lambda_handler(event, context):
         return {'statusCode': 500, 'body': {'message': 'Internal server error'}}
 
 
-#Function used to start a new gaem
+#Function used to start a new game
 def startGame(num_letters, user_id):
     # Generate a random target word of the specified length
     wordlist = ['apple', 'banana', 'cherry', 'date', 'elder', 'fig', 'grape', 'hazel', 'indigo', 'juniper', 'kiwi', 'lemon', 'mango',
@@ -119,25 +116,25 @@ def getGame(response):
     return {'game_data': response_body}
 
 #Function used to check the guessed word and returns the feedback
-def saveGuess(game_data, guessed_word, game_id):
+def saveGuess(game_data, guess, game_id):
     # Check if the guessed word is the same as the target word
     target_word = game_data['word']
-    if guessed_word == target_word:
+    if guess == target_word:
         # If the guessed word is the same as the target word, mark it as correct
         feedback = 'correct'
     else:
         # Otherwise, mark each letter in the guessed word as either green, yellow, or gray
         feedback = []
-        for i in range(len(guessed_word)):
-            if guessed_word[i] == target_word[i]:
+        for i in range(len(guess)):
+            if guess[i] == target_word[i]:
                 feedback.append('green')
-            elif guessed_word[i] in target_word:
+            elif guess[i] in target_word:
                 feedback.append('yellow')
             else:
                 feedback.append('gray')
 
     # Add the guessed word to the list of guesses and decrement the remaining turns
-    game_data['guesses'].append(guessed_word)
+    game_data['guesses'].append(guess)
     game_data['remaining_turns'] -= 1
 
     # Update the game data in DynamoDB
