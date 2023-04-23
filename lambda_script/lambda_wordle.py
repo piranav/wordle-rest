@@ -13,22 +13,17 @@ table = dynamodb.Table(dynamodbTableName)
 
 #HTTP REQUESTS
 
+# Extracting the http method
+httpMethod = event['httpMethod']
+path = event['path']
 getMethod = 'GET'
 postMethod = 'POST'
-
-gamesPath = '/games'
-game_idPath = '/games/-game_id-'
-guessPath = '/games/-game_id-/guesses'
 
 
 def lambda_handler(event, context):
     try:
-        # Extracting the http method
-        httpMethod = event['httpMethod']
-        path = event['path']
-
         # Takes the number of letters and creates a new game, returns the game id
-        if httpMethod == postMethod and path == gamesPath:
+        if httpMethod == postMethod and event['resource'] == '/games':
             num_letters = int(json.loads(event['body'])['num_letters'])
             user_id = json.loads(event['body'])['user_id']
             print(user_id, num_letters)
@@ -41,9 +36,10 @@ def lambda_handler(event, context):
             return {'statusCode': 400, 'body': 'Invalid word length'}
 
         # Takes the game_id and returns the status of the game
-        if httpMethod == getMethod and path == game_idPath:
-            game_id = json.loads(event['body'])
-            response = table.get_item(Key={'game_id': game_id['game_id']})
+        if httpMethod == getMethod and event['resource'] == '/games/{game_id}' and 'game_id' in event['pathParameters']:
+            game_id = event['pathParameters']['game_id']
+            print(game_id)
+            response = table.get_item(Key={'game_id': game_id})
             if 'Item' in response:
                 response_body = getGame(response)
                 response_json = json.dumps(response_body)
@@ -53,8 +49,9 @@ def lambda_handler(event, context):
             return {'statusCode': 404, 'body': 'Game not found'}
 
         # Takes the game_id, guessed_word and returns the result based on the guessed_word
-        if httpMethod == postMethod and path == guessPath:
-            game_id = json.loads(event['body'])['game_id']
+        if  httpMethod == postMethod and event['resource'] == '/games/{game_id}/guess' and 'game_id' in event['pathParameters'] :
+            game_id = event['pathParameters']['game_id']
+            print(game_id)
             guessed_word = (json.loads(event['body'])['guessed_word']).lower()
             response = table.get_item(Key={'game_id': game_id})
 

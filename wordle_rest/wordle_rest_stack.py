@@ -53,12 +53,12 @@ class WordleRestStack(Stack):
         games_method = games_resource.add_method("POST", wordle_integration)
 
         # creating games/{game_id} resource and method in the REST API
-        game_id_resource = games_resource.add_resource('-game_id-')
+        game_id_resource = games_resource.add_resource('{game_id}')
 
         game_id_method = game_id_resource.add_method("GET", wordle_integration)
 
         # Creating games/{game_id}/guesses
-        guesses_resource = game_id_resource.add_resource('guesses')
+        guesses_resource = game_id_resource.add_resource('guess')
         guesses_method = guesses_resource.add_method('POST',wordle_integration)
 
         
