@@ -21,7 +21,7 @@ def lambda_handler(event, context):
         getMethod = 'GET'
         postMethod = 'POST'
         # Takes the number of letters and creates a new game, returns the game id
-        if httpMethod == postMethod and event['resource'] == '/games:
+        if httpMethod == postMethod and event['resource'] == '/games':
             num_letters = int(json.loads(event['body'])['num_letters'])
             user_id = json.loads(event['body'])['user_id']
             print(user_id, num_letters)
