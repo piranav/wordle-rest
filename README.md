@@ -1,58 +1,61 @@
+# Wordle Game REST API
 
-# Welcome to your CDK Python project!
+This project creates an AWS infrastructure for a Wordle game REST API using the AWS Cloud Development Kit (CDK) and Python. The REST API allows users to create a game, guess a word in the game, and get the status of the game. 
 
-This is a blank project for CDK development with Python.
+## Requirements
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+- AWS account
+- Python 3.10
+- AWS CLI
+- AWS CDK
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+## Installation
 
-To manually create a virtualenv on MacOS and Linux:
+1. Clone the repository: `git clone https://github.com/<username>/<repository-name>.git`
+2. Navigate to the project directory: `cd <repository-name>`
+3. Install dependencies: `pip install -r requirements.txt`
+4. Deploy the stack to AWS: `cdk deploy`
 
-```
-$ python3 -m venv .venv
-```
+## Usage
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+The API Gateway endpoint is printed to the console after the stack is deployed. You can make API requests to this endpoint to interact with the Wordle game REST API. 
 
-```
-$ source .venv/bin/activate
-```
+### Create a Game
 
-If you are a Windows platform, you would activate the virtualenv like this:
+To create a new game, send a POST request to the `/games` endpoint with a JSON body that includes the `game_id`:
 
 ```
-% .venv\Scripts\activate.bat
+POST /games
+
+{
+  "game_id": "abcd1234"
+}
 ```
 
-Once the virtualenv is activated, you can install the required dependencies.
+### Guess a Word
+
+To guess a word in a game, send a POST request to the `/games/{game_id}/guesses` endpoint with a JSON body that includes the `guess`:
 
 ```
-$ pip install -r requirements.txt
+POST /games/abcd1234/guesses
+
+{
+  "guess": "apple"
+}
 ```
 
-At this point you can now synthesize the CloudFormation template for this code.
+### Get Game Status
+
+To get the status of a game, send a GET request to the `/games/{game_id}` endpoint:
 
 ```
-$ cdk synth
+GET /games/abcd1234
 ```
 
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
+## Cleanup
 
-## Useful commands
+To delete the stack from AWS and cleanup all resources, run `cdk destroy`. 
 
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
+## License
 
-Enjoy!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
