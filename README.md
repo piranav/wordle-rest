@@ -47,7 +47,8 @@ To guess a word in a game, send a POST request to the `/games/{game_id}/guess` e
 
 ```
 POST /games/1002/guess
-
+```
+```
 {
   "guess": "apple"
 }
