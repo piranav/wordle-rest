@@ -64,7 +64,7 @@ Example response body:
 }
 ```
 
-### GET /games/{game_id}/{guess}
+### PUT /games/{game_id}/{guess}
 
 Makes a guess for the game with the specified ID using the specified word. Returns the result of the guess.
 
