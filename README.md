@@ -20,49 +20,82 @@ This project creates an AWS infrastructure for a Wordle game REST API using the 
 
 The API Gateway endpoint is printed to the console after the stack is deployed. You can make API requests to this endpoint to interact with the Wordle game REST API. 
 
-### Create a Game
 
-To create a new game, send a POST request to the `/games` endpoint with a JSON body that includes the unique user_id `user_id` and `num_letters` which denotes the number of letters you want your game word to have. :
+### POST /games
 
-```
-POST /games
-```
-```
-{
-  "user_id": "1234",
-  "num_letters:"5"
-}
-```
-This will return a unique game_id which can be used to guess and track the status of the game.
+Creates a new game with the specified parameters:
+
+- `num_letters`: number of letters in the target word (between 5 and 8)
+- `user_id`: unique user ID for the game
+- `game_mode`: game mode, either "easy" or "hard"
+
+Example request body:
 
 ```
 {
-"game_id":"1002"
+  "num_letters": 6,
+  "user_id": "abc123",
+  "game_mode": "easy"
 }
 ```
 
-### Guess a Word
+Example response body:
 
-To guess a word in a game, send a POST request to the `/games/{game_id}/guess` endpoint with a JSON body that includes the `guess`:
-
-```
-POST /games/1002/guess
-```
 ```
 {
-  "guess": "apple"
+  "game_id": "123456"
 }
-
 ```
 
-### Get Game Status
+### GET /games/{game_id}
 
-To get the status of a game, send a GET request to the `/games/{game_id}` endpoint:
+Retrieves the status of the game with the specified ID.
+
+Example response body:
 
 ```
-GET /games/1002
+{
+  "game_id": "123456",
+  "num_letters": 6,
+  "remaining_turns": 4,
+  "game_mode": "easy",
+  "correct_letters": ["a", "c"],
+  "guessed_words": ["acacia", "brazil", "calico"]
+}
 ```
-this would return the user_id , number of turns left and your past guesses.
+
+### POST /games/{game_id}/{guess}
+
+Makes a guess for the game with the specified ID using the specified word. Returns the result of the guess.
+
+Example response body:
+
+```
+{
+    "feedback": [
+        "yellow",
+        "green",
+        "green",
+        "green",
+        "green"
+    ],
+    "correct_letters": [
+        "r",
+        "a",
+        "t",
+        "e",
+        "r"
+    ],
+    "remaining_turns": 2
+}
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+
 
 ## Cleanup
 
