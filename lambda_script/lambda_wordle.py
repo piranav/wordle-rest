@@ -66,7 +66,7 @@ def lambda_handler(event, context):
                 if not guessed_word.isalpha() or len(guessed_word) != len(game_data['word']):
                     return {'statusCode': 400, 'body': 'Invalid guessed word'}
                 elif game_data['remaining_turns'] == 0:
-                    return {'statusCode': 400, 'body': 'Game over'}
+                    return {'statusCode': 400, 'body': 'Game over, Correct word:' + str(game_data['word'])}
                 #Checking if the word is valid
                 elif guessed_word not in valid_words :
                     return {'statusCode': 400, 'body': 'Error : Not a Valid word'}
@@ -168,4 +168,4 @@ def saveGuess(game_data, guess, game_id):
                       ExpressionAttributeValues={':game_data': game_data})
 
     # Return the feedback for the guessed word
-    return {'feedback': feedback}
+    return {'feedback': feedback, 'correct_letters': correct_letters, 'remaining_turns': game_data['remaining_turns'] }
