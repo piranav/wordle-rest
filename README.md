@@ -54,7 +54,7 @@ Example request body:
 
 ```
 {
-  "num_letters": 6,
+  "num_letters": "6",
   "user_id": "abc123",
   "game_mode": "easy"
 }
