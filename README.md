@@ -85,6 +85,7 @@ Example response body:
   "guesses": ["acacia", "brazil", "calico"],
   "correct_letters": ["a", "c"],
   "game_mode": "easy",
+  "status": "Ongoing"
 }
 ```
 
