@@ -9,6 +9,26 @@ This project creates an AWS infrastructure for a Wordle game REST API using the 
 - AWS CLI
 - AWS CDK
 
+## Rules
+
+1. Letters that are in the answer and in the right place turn green.
+2. Letters that are in the answer but in the wrong place turn yellow.
+3. Letters that are not in the answer turn gray.
+4. Answers are never plural.
+5. Letters can appear more than once. So if your guess includes two of one letter, they may both
+turn yellow, both turn green, or one could be yellow and the other green.
+6. Each guess must be a valid word in Wordle's dictionary. You can't guess ABCDE, for
+instance.
+7. You do not have to include correct letters in subsequent guesses unless you play on Hard
+mode.
+8. The user can create and play as many games as they want
+9.The user can configure the number of letters in the target word to be anywhere between
+5 to 8 letters, but they will always only have N+1 turns to guess the word.
+
+
+
+
+
 ## Installation
 
 1. Clone the repository: `git clone https://github.com/<username>/<repository-name>.git`
