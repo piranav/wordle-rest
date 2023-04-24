@@ -60,6 +60,6 @@ class WordleRestStack(Stack):
 
         # Creating games/{game_id}/guesses
         guesses_resource = game_id_resource.add_resource('{guess}')
-        guesses_method = guesses_resource.add_method('POST',wordle_integration)
+        guesses_method = guesses_resource.add_method('PUT',wordle_integration)
 
         
