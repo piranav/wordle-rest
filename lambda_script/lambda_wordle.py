@@ -3,8 +3,10 @@ import simplejson as json
 import random
 import string
 import logging
+from PyDictionary import PyDictionary
+import inflect
 
-
+#Dynamo Table
 dynamodbTableName = 'wordle_data'
 # Defining the dynamo cliet
 dynamodb = boto3.resource('dynamodb')
@@ -12,23 +14,28 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(dynamodbTableName)
 
 #HTTP REQUESTS
+# Extracting the http method
+httpMethod = event['httpMethod']
+getMethod = 'GET'
+postMethod = 'POST'
+
+#Creating PyDictionary and Inflict instances to help us check if the word is valid or not
+dictionary = PyDictionary()
+engine = inflect.engine()
 
 
 def lambda_handler(event, context):
     try:
-        # Extracting the http method
-        httpMethod = event['httpMethod']
-        getMethod = 'GET'
-        postMethod = 'POST'
         # Takes the number of letters and creates a new game, returns the game id
         if httpMethod == postMethod and event['resource'] == '/games':
             num_letters = int(json.loads(event['body'])['num_letters'])
             user_id = json.loads(event['body'])['user_id']
-            print(user_id, num_letters)
+            game_mode = json.loads(event['body'])['game_mode']
+            print(user_id, num_letters,game_mode)
             # Checking if the number of letters falls in the desired range
             if num_letters in range(5, 9):
                 response_json = json.dumps(
-                    startGame(num_letters, user_id))
+                    startGame(num_letters, user_id, game_mode))
                 print(response_json)
                 return {'statusCode': 201, 'body': response_json}
             return {'statusCode': 400, 'body': 'Invalid word length'}
@@ -55,15 +62,27 @@ def lambda_handler(event, context):
             if 'Item' in response:
                 game_data = response['Item']['game_data']
                 print(game_data)
+                
                 #Checking if it satisfies base conditions 
                 if not guessed_word.isalpha() or len(guessed_word) != len(game_data['word']):
                     return {'statusCode': 400, 'body': 'Invalid guessed word'}
                 elif game_data['remaining_turns'] == 0:
                     return {'statusCode': 400, 'body': 'Game over'}
+                
+                #Checking if the word is vaild using PyDictionary
+                elif not dictionary.meaning(guessed_word):
+                    return {'statusCode': 400, 'body': 'Invalid guessed word'}
+                
+                #Checking if the word is plural
+                elif dictionary.meaning(guessed_word) and not engine.singular_noun(guessed_word) :
+                    return {'statusCode': 400, 'body': 'Error : plural word'}
+                
+                
+                
+                
+                #Passes all the base condition
                 response_body = saveGuess(game_data, guessed_word, game_id)
-                print(response_body)
                 response_json = json.dumps(response_body)
-                print(response_json)
                 return {'statusCode': 200, 'body': response_json}
             return {'statusCode': 404, 'body': 'Game not found'}
 
@@ -78,7 +97,7 @@ def lambda_handler(event, context):
 
 
 #Function used to start a new game
-def startGame(num_letters, user_id):
+def startGame(num_letters, user_id,mode):
     # Generate a random target word of the specified length
     wordlist = ['apple', 'banana', 'cherry', 'date', 'elder', 'fig', 'grape', 'hazel', 'indigo', 'juniper', 'kiwi', 'lemon', 'mango',
                 'nectar', 'orange', 'peach', 'quince', 'rasp', 'straw', 'tanger', 'ugli', 'vanilla', 'water', 'xigua', 'yellow', 'zucchini']
@@ -97,7 +116,8 @@ def startGame(num_letters, user_id):
         'user_id': user_id,
         'word': word,
         'remaining_turns': int(num_letters)+1,
-        'guesses': []
+        'guesses': [],
+        'game_mode':mode
     }
     table.put_item(Item={'game_id': temp_id, 'game_data': game_data})
 
@@ -111,7 +131,8 @@ def getGame(response):
     response_body = {
         'user_id': game_data['user_id'],
         'remaining_turns': game_data['remaining_turns'],
-        'guesses': game_data['guesses']
+        'guesses': game_data['guesses'],
+        'mode': game_data['game_mode']
     }
     return {'game_data': response_body}
 
@@ -123,15 +144,20 @@ def saveGuess(game_data, guess, game_id):
         # If the guessed word is the same as the target word, mark it as correct
         feedback = 'correct'
     else:
+        if game_data['game_mode'] != 'hard':
         # Otherwise, mark each letter in the guessed word as either green, yellow, or gray
-        feedback = []
-        for i in range(len(guess)):
-            if guess[i] == target_word[i]:
-                feedback.append('green')
-            elif guess[i] in target_word:
-                feedback.append('yellow')
-            else:
-                feedback.append('gray')
+            feedback = []
+            for i in range(len(guess)):
+                if guess[i] == target_word[i]:
+                    feedback.append('green')
+                elif guess[i] in target_word:
+                    feedback.append('yellow')
+                else:
+                    feedback.append('gray')
+        else:
+            feedback = None
+        
+
 
     # Add the guessed word to the list of guesses and decrement the remaining turns
     game_data['guesses'].append(guess)
