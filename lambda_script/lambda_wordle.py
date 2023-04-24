@@ -66,6 +66,8 @@ def lambda_handler(event, context):
                 if not guessed_word.isalpha() or len(guessed_word) != len(game_data['word']):
                     return {'statusCode': 400, 'body': 'Invalid guessed word'}
                 elif game_data['remaining_turns'] == 0:
+                    if game_data['resut'] != "Won":
+                        game_data['result'] = "Lost"
                     return {'statusCode': 400, 'body': 'Game over, Correct word:' + str(game_data['word'])}
                 #Checking if the word is valid
                 elif guessed_word not in valid_words :
@@ -117,7 +119,8 @@ def startGame(num_letters, user_id,mode):
         'remaining_turns': int(num_letters)+1,
         'guesses': [],
         'correct_letters':[],
-        'game_mode':mode
+        'game_mode':mode,
+        'result': 'Ongoing'
     }
     table.put_item(Item={'game_id': temp_id, 'game_data': game_data})
 
@@ -133,7 +136,8 @@ def getGame(response):
         'remaining_turns': game_data['remaining_turns'],
         'guesses': game_data['guesses'],
         'correct_letters': game_data['correct_letters'],
-        'mode': game_data['game_mode']
+        'mode': game_data['game_mode'],
+        'Status': game_data['result']
     }
     return {'game_data': response_body}
 
@@ -144,6 +148,8 @@ def saveGuess(game_data, guess, game_id):
     if guess == target_word:
         # If the guessed word is the same as the target word, mark it as correct
         feedback = 'correct'
+        correct_letters = list(guess)
+        game_data['result'] = "Won"
     else:
         # Otherwise, mark each letter in the guessed word as either green, yellow, or gray
         feedback = []
