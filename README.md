@@ -22,6 +22,7 @@ instance.
 7. You do not have to include correct letters in subsequent guesses unless you play on Hard
 mode.
 8. The user can create and play as many games as they want.
+
 9.The user can configure the number of letters in the target word to be anywhere between
 5 to 8 letters, but they will always only have N+1 turns to guess the word.
 
