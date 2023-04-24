@@ -48,6 +48,11 @@ Example response body:
 ```
 
 ### GET /games/{game_id}
+Example:
+
+```
+/games/123456
+```
 
 Retrieves the status of the game with the specified ID.
 
@@ -55,16 +60,21 @@ Example response body:
 
 ```
 {
-  "game_id": "123456",
-  "num_letters": 6,
-  "remaining_turns": 4,
-  "game_mode": "easy",
+  "user_id": "123456",
+  "remaining_turns": 4, 
+  "guesses": ["acacia", "brazil", "calico"],
   "correct_letters": ["a", "c"],
-  "guessed_words": ["acacia", "brazil", "calico"]
+  "game_mode": "easy",
 }
 ```
 
 ### POST /games/{game_id}/{guess}
+
+Example:
+
+```
+/games/123456/water
+```
 
 Makes a guess for the game with the specified ID using the specified word. Returns the result of the guess.
 
