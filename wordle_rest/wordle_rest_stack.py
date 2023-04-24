@@ -1,7 +1,6 @@
 from aws_cdk import (
     Stack,
     aws_lambda,
-    aws_lambda_python_alpha as alambda,
     aws_apigateway as apigateway,
     aws_dynamodb as dynamodb,
     aws_iam as iam
@@ -60,7 +59,7 @@ class WordleRestStack(Stack):
         game_id_method = game_id_resource.add_method("GET", wordle_integration)
 
         # Creating games/{game_id}/guesses
-        guesses_resource = game_id_resource.add_resource('guess')
+        guesses_resource = game_id_resource.add_resource('{guess}')
         guesses_method = guesses_resource.add_method('POST',wordle_integration)
 
         

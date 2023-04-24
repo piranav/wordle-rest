@@ -14,8 +14,8 @@ table = dynamodb.Table(dynamodbTableName)
 # Example data containing all valid words
 url = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
 response = urllib.request.urlopen(url)
-word_list = response.read().decode().split("\n")
-word_list = [word.rstrip() for word in word_list]
+valid_words= response.read().decode().split("\n")
+valid_words = [word.rstrip() for word in valid_words]
 
 
 def lambda_handler(event, context):
@@ -27,18 +27,18 @@ def lambda_handler(event, context):
         getMethod = 'GET'
         postMethod = 'POST'
         
-        # Takes the number of letters and creates a new game, returns the game id
+        # Takes the number of letters, user_id and game_mode, creates a new game, returns the game id
         if httpMethod == postMethod and event['resource'] == '/games':
             num_letters = int(json.loads(event['body'])['num_letters'])
             user_id = json.loads(event['body'])['user_id']
             game_mode = json.loads(event['body'])['game_mode']
-            print(user_id, num_letters,game_mode)
+        
             # Checking if the number of letters falls in the desired range
             if num_letters in range(5, 9):
                 response_json = json.dumps(
                     startGame(num_letters, user_id, game_mode))
-                print(response_json)
-                return {'statusCode': 201, 'body': response_json}
+                return {'statusCode': 200, 'body': response_json}
+            
             return {'statusCode': 400, 'body': 'Invalid word length'}
 
         # Takes the game_id and returns the status of the game
@@ -54,34 +54,31 @@ def lambda_handler(event, context):
             return {'statusCode': 404, 'body': 'Game not found'}
 
         # Takes the guessed_word and returns the result based on the guessed_word
-        if event['resource'] == '/games/{game_id}/guess' and 'game_id' in event['pathParameters'] :
+        if event['resource'] == '/games/{game_id}/{guess}' and 'game_id' in event['pathParameters'] and 'guess' in event['pathParameters'] :
             game_id = event['pathParameters']['game_id']
-            guessed_word = (json.loads(event['body'])['guess']).lower()
+            guessed_word = event['pathParameters']['guess']
             response = table.get_item(Key={'game_id': game_id})
 
             if 'Item' in response:
                 game_data = response['Item']['game_data']
-                #print(game_data)
-                print(guessed_word, word_list)
+            
                 #Checking if it satisfies base conditions 
                 if not guessed_word.isalpha() or len(guessed_word) != len(game_data['word']):
                     return {'statusCode': 400, 'body': 'Invalid guessed word'}
                 elif game_data['remaining_turns'] == 0:
                     return {'statusCode': 400, 'body': 'Game over'}
                 #Checking if the word is valid
-                elif guessed_word not in word_list :
+                elif guessed_word not in valid_words :
                     return {'statusCode': 400, 'body': 'Error : Not a Valid word'}
                 #Checking if the word is a plural word
-                elif guessed_word.endswith("s") and guessed_word[:-1] not in word_list:
+                elif guessed_word.endswith("s") and guessed_word[:-1] in valid_words:
                     return {'statusCode': 400, 'body': 'Error : Plural word'}
                 
                 #Hard Mode configuration and if anything other than your first try
                 elif game_data['game_mode'].lower() == 'hard' and int(game_data['remaining_turns']) != len(game_data['word'])+1:
-                    for letter in game_data['correct_words']:
+                    for letter in game_data['correct_letters']:
                         if letter not in list(guessed_word):
-                            return {'statusCode': 400, 'body': 'Error : Hard Mode condition not fullfiled'}
-                
-                
+                            return {'statusCode': 400, 'body': 'Error : All the correct letters are not included'}
                 
                 #Passes all the base condition
                 response_body = saveGuess(game_data, guessed_word, game_id)
@@ -97,7 +94,6 @@ def lambda_handler(event, context):
         print(f'Error: {str(e)}')
         # Return a 500 error with the error message
         return {'statusCode': 500, 'body': {'message': 'Internal server error'}}
-
 
 #Function used to start a new game
 def startGame(num_letters, user_id,mode):
@@ -120,7 +116,7 @@ def startGame(num_letters, user_id,mode):
         'word': word,
         'remaining_turns': int(num_letters)+1,
         'guesses': [],
-        'correct_words':[],
+        'correct_letters':[],
         'game_mode':mode
     }
     table.put_item(Item={'game_id': temp_id, 'game_data': game_data})
@@ -136,6 +132,7 @@ def getGame(response):
         'user_id': game_data['user_id'],
         'remaining_turns': game_data['remaining_turns'],
         'guesses': game_data['guesses'],
+        'correct_letters': game_data['correct_letters'],
         'mode': game_data['game_mode']
     }
     return {'game_data': response_body}
@@ -150,21 +147,20 @@ def saveGuess(game_data, guess, game_id):
     else:
         # Otherwise, mark each letter in the guessed word as either green, yellow, or gray
         feedback = []
+        correct_letters = []
         for i in range(len(guess)):
             if guess[i] == target_word[i]:
                 feedback.append('green')
-                game_data['correct_words'].append(guess[i]) 
+                correct_letters.append(guess[i]) 
             elif guess[i] in target_word:
                 feedback.append('yellow')
-                game_data['correct_words'].append(guess[i])
+                correct_letters.append(guess[i])
             else:
                 feedback.append('gray')
-            
-        
-
 
     # Add the guessed word to the list of guesses and decrement the remaining turns
     game_data['guesses'].append(guess)
+    game_data['correct_letters'] = correct_letters
     game_data['remaining_turns'] -= 1
 
     # Update the game data in DynamoDB
