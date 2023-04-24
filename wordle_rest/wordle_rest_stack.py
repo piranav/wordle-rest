@@ -1,6 +1,7 @@
 from aws_cdk import (
     Stack,
-    aws_lambda, 
+    aws_lambda,
+    aws_lambda_python_alpha as alambda,
     aws_apigateway as apigateway,
     aws_dynamodb as dynamodb,
     aws_iam as iam
@@ -29,6 +30,7 @@ class WordleRestStack(Stack):
                                                      role=wordle_lambda_role,
                                                      runtime = aws_lambda.Runtime.PYTHON_3_10,
                                                      function_name = 'wordle_lambda')
+
 
         #Creating the DynamoDB table
         game_table = dynamodb.Table(self, "WordleData",
