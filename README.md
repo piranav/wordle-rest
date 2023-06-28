@@ -90,7 +90,7 @@ Example response body:
 }
 ```
 
-### POST /games/{game_id}/{guess}
+### PUT /games/{game_id}/{guess}
 
 Example:
 
